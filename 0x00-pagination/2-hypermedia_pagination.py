@@ -1,43 +1,96 @@
 #!/usr/bin/env python3
-"""Hypermedia pagination"""
+"""Replicate code from the previous task.
 
+Implement a get_hyper method that takes the same arguments
+(and defaults) as get_page and returns a dictionary containing
+the following key-value pairs:
+
+page_size: the length of the returned dataset page
+page: the current page number
+data: the dataset page (equivalent to return from previous task)
+next_page: number of the next page, None if no next page
+prev_page: number of the previous page, None if no previous page
+total_pages: the total number of pages in the dataset as an integer
+Make sure to reuse get_page in your implementation.
+
+You can use the math module if necessary.
+"""
+
+
+from typing import Tuple, List
 import csv
 import math
-from typing import List, Dict, Any
+
+
+def index_range(page: int, page_size: int) -> Tuple[int, int]:
+    """
+    start index and an end index corresponding to the range of
+    """
+    # Calculate the start and end indices for the given page and page size
+    return ((page-1) * page_size, page_size * page)
+
 
 class Server:
+    """Server class to paginate a database of popular baby names.
+    """
+    DATA_FILE = "Popular_Baby_Names.csv"
+
     def __init__(self):
-        # Initialize an empty list to store the dataset
-        self.dataset = []
+        self.__dataset = None
 
-        # Read the CSV file and populate the dataset list
-        with open('0x00-pagination/user_data.csv', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                self.dataset.append(row)
+    def dataset(self) -> List[List]:
+        """Cached dataset
+        """
+        # Lazily load the dataset from the CSV file
+        if self.__dataset is None:
+            with open(self.DATA_FILE) as f:
+                reader = csv.reader(f)
+                dataset = [row for row in reader]
+            self.__dataset = dataset[1:]
 
-    def get_page(self, page_number: int = 1, page_size: int = 10) -> List[List[str]]:
-        # Ensure that page_number and page_size are positive integers
-        if page_number <= 0 or page_size <= 0:
+        return self.__dataset
+
+    def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
+        """return the appropriate page of the dataset"""
+        assert type(page) is int and page > 0
+        assert type(page_size) is int and page_size > 0
+
+        # Get the dataset
+        data = self.dataset()
+
+        try:
+            # Get the start and end indices for the page
+            start, end = index_range(page, page_size)
+            return data[start:end]
+        except IndexError:
             return []
 
-        # Calculate the start and end indices of the current page
-        start = (page_number - 1) * page_size
-        end = start + page_size
-        # Return the data for the current page
-        return self.dataset[start:end]
+    def get_hyper(self, page: int = 1, page_size: int = 10) -> dict:
+        """returns a dictionary containing the following key-value pairs
+        """
+        assert type(page) is int and page > 0
+        assert type(page_size) is int and page_size > 0
 
-    def get_hyper(self, page: int = 1, page_size: int = 10) -> Dict[str, Any]:
         # Get the data for the current page
         data = self.get_page(page, page_size)
         # Calculate the total number of pages
-        total_pages = math.ceil(len(self.dataset) / page_size)
+        total_pages = math.ceil(len(self.dataset()) / page_size)
 
-        # Calculate the next and previous page numbers
-        next_page = page + 1 if page < total_pages else None
-        prev_page = page - 1 if page > 1 else None
+        # Calculate the start and end indices for the current page
+        start, end = index_range(page, page_size)
 
-        # Return a dictionary containing pagination information
+        # Determine the next page number
+        if page < total_pages:
+            next_page = page + 1
+        else:
+            next_page = None
+
+        # Determine the previous page number
+        if page == 1:
+            prev_page = None
+        else:
+            prev_page = page - 1
+
         return {
             'page_size': len(data),
             'page': page,
@@ -59,4 +112,3 @@ if __name__ == "__main__":
     print(server.get_hyper(100, 3))
     print("---")
     print(server.get_hyper(3000, 100))
-
