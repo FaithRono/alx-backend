@@ -4,6 +4,7 @@
 # Import the BaseCaching class from base_caching module
 from base_caching import BaseCaching
 
+
 class BasicCache(BaseCaching):
     """Represents an object that allows storing and
     retrieving items from a dictionary.
