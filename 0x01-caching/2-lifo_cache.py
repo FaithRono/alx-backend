@@ -28,7 +28,7 @@ class LIFOCache(BaseCaching):
         if key is None or item is None:
             # Do nothing if either key or item is None
             return
-        
+
         # Check if the key is not already in the cache
         if key not in self.cache_data:
             # Check if adding the new item exceeds MAX_ITEMS
@@ -37,7 +37,7 @@ class LIFOCache(BaseCaching):
                 last_key, _ = self.cache_data.popitem(True)
                 # Print the discarded key
                 print("DISCARD:", last_key)
-        
+
         # Assign the item to the cache dictionary at key
         self.cache_data[key] = item
         # Move the key to the end of the order
